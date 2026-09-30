@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Register Student{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Register New Student</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-back">Back to Dashboard</a>
+</div>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<div class="form-container">
+    <form method="POST" action="{{ url_for('register_student') }}">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" placeholder="e.g. Ramesh Kumar" required autofocus>
+        </div>
+        <div class="form-group">
+            <label>Roll Number</label>
+            <input type="text" name="roll_no" placeholder="e.g. 101" required>
+        </div>
+        <div class="form-group">
+            <label>Course</label>
+            <input type="text" name="course" value="BCA" required>
+        </div>
+        <div class="form-group">
+            <label>Semester</label>
+            <input type="number" name="semester" value="6" min="1" max="8" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Next: Capture Face →</button>
+    </form>
+</div>
+{% endblock %}

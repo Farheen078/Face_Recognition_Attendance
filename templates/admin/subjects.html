@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Manage Subjects{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Manage Subjects</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-back">Back to Dashboard</a>
+</div>
+
+<div class="two-column">
+    
+    <div class="card">
+        <h3>➕ Add New Subject</h3>
+        <form method="POST" action="{{ url_for('add_subject') }}">
+            <div class="form-group">
+                <label>Subject Code</label>
+                <input type="text" name="subject_code" placeholder="e.g. CS101" required>
+            </div>
+            <div class="form-group">
+                <label>Subject Name</label>
+                <input type="text" name="subject_name" placeholder="e.g. Data Structures" required>
+            </div>
+            <div class="form-group">
+                <label>Teacher Name</label>
+                <input type="text" name="teacher_name" placeholder="e.g. Mr. Sharma" required>
+            </div>
+            <div class="form-group">
+                <label>Semester</label>
+                <input type="number" name="semester" value="6" min="1" max="8" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Subject</button>
+        </form>
+    </div>
+    
+    <div class="card">
+        <h3>📚 All Subjects ({{ subjects|length }})</h3>
+        {% if subjects %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Subject</th>
+                    <th>Teacher</th>
+                    <th>Sem</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in subjects %}
+                <tr>
+                    <td><strong>{{ s.subject_code }}</strong></td>
+                    <td>{{ s.subject_name }}</td>
+                    <td>{{ s.teacher_name }}</td>
+                    <td>{{ s.semester }}</td>
+                    <td>
+                        <a href="{{ url_for('delete_subject', subject_id=s.id) }}" 
+                           class="btn-delete"
+                           onclick="return confirm('Delete this subject?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #7f8c8d; margin-top: 1rem;">No subjects added yet. Add your first subject using the form.</p>
+        {% endif %}
+    </div>
+    
+</div>
+{% endblock %}

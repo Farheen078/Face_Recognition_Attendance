@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Daily Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Daily Report — {{ date }}</h1>
+    <a href="{{ url_for('reports') }}" class="btn-back">Back to Reports</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>{{ total_students }}</h3>
+        <p>Total Students</p>
+    </div>
+    <div class="stat-card" style="border-left-color: #27ae60;">
+        <h3 style="color: #27ae60;">{{ present_count }}</h3>
+        <p>Present</p>
+    </div>
+    <div class="stat-card" style="border-left-color: #e74c3c;">
+        <h3 style="color: #e74c3c;">{{ absent_count }}</h3>
+        <p>Absent</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3>Attendance Records</h3>
+        <a href="{{ url_for('export_daily') }}?date={{ date }}&subject_id={{ subject_id }}" 
+           class="btn btn-success" style="width: auto; padding: 0.5rem 1rem; text-decoration: none;">
+            📥 Export to Excel
+        </a>
+    </div>
+    
+    {% if rows %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Name</th>
+                <th>Roll No</th>
+                <th>Subject</th>
+                <th>Method</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in rows %}
+            <tr>
+                <td>{{ r.time }}</td>
+                <td><strong>{{ r.name }}</strong></td>
+                <td>{{ r.roll_no }}</td>
+                <td>{{ r.subject_code }} — {{ r.subject_name }}</td>
+                <td><span class="badge badge-success">{{ r.method }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #7f8c8d; margin-top: 1rem;">No attendance records for this date.</p>
+    {% endif %}
+</div>
+{% endblock %}

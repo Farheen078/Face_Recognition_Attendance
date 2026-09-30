@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Defaulter Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Defaulter Report (Below {{ threshold }}%)</h1>
+    <a href="{{ url_for('reports') }}" class="btn-back">Back to Reports</a>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3>Defaulters ({{ defaulters|length }})</h3>
+        <a href="{{ url_for('export_defaulter') }}?threshold={{ threshold }}" 
+           class="btn btn-success" style="width: auto; padding: 0.5rem 1rem; text-decoration: none;">
+            📥 Export to Excel
+        </a>
+    </div>
+    
+    <p style="color: #7f8c8d; margin-bottom: 1rem;">
+        Total classes conducted: <strong>{{ total_classes }}</strong>
+    </p>
+    
+    {% if defaulters %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Course</th>
+                <th>Present</th>
+                <th>Total</th>
+                <th>Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in defaulters %}
+            <tr>
+                <td>{{ d.roll_no }}</td>
+                <td><strong>{{ d.name }}</strong></td>
+                <td>{{ d.course }}</td>
+                <td>{{ d.present_count }}</td>
+                <td>{{ d.total_classes }}</td>
+                <td>
+                    <span class="badge badge-danger">{{ d.percentage }}%</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #27ae60; margin-top: 1rem;">
+        ✅ No defaulters! All students are above {{ threshold }}%.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}

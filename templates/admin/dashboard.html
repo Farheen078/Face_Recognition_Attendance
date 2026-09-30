@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Welcome back, {{ session.admin_username }} 👋</h1>
+        <p style="color: #64748b; margin-top: 0.25rem;">Here's what's happening with your attendance system</p>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>{{ student_count }}</h3>
+        <p>Total Students</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ subject_count }}</h3>
+        <p>Active Subjects</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ today_attendance }}</h3>
+        <p>Today's Attendance</p>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="charts-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin: 2rem 0;">
+    <div class="card">
+        <h3 style="margin-bottom: 1rem;">📈 Last 7 Days Attendance</h3>
+        <canvas id="trendChart" height="90"></canvas>
+    </div>
+    <div class="card">
+        <h3 style="margin-bottom: 1rem;">📚 Subject-wise</h3>
+        <canvas id="subjectChart" height="200"></canvas>
+    </div>
+</div>
+
+<div class="charts-grid" style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin: 2rem 0;">
+    <div class="card">
+        <h3 style="margin-bottom: 1rem;">🏆 Top Attendees (This Month)</h3>
+        <canvas id="topStudentsChart" height="80"></canvas>
+    </div>
+</div>
+
+<h2 style="margin-top: 3rem; color: #1e293b; font-size: 1.35rem; font-weight: 700;">Quick Actions</h2>
+
+<div class="actions-grid">
+    <a href="{{ url_for('register_student') }}" class="action-card">
+        <h3>👤 Register Student</h3>
+        <p>Add new student with face capture</p>
+    </a>
+    <a href="{{ url_for('train_model_route') }}" class="action-card">
+        <h3>🧠 Train Model</h3>
+        <p>Train face recognition model (LBPH)</p>
+    </a>
+    <a href="{{ url_for('manage_subjects') }}" class="action-card">
+        <h3>📚 Manage Subjects</h3>
+        <p>Add and manage subjects</p>
+    </a>
+    <a href="{{ url_for('manage_timetable') }}" class="action-card">
+        <h3>📅 Manage Timetable</h3>
+        <p>Set subject schedule with time</p>
+    </a>
+    <a href="{{ url_for('take_attendance') }}" class="action-card">
+        <h3>📸 Take Attendance</h3>
+        <p>Start live face recognition session</p>
+    </a>
+    <a href="{{ url_for('reports') }}" class="action-card">
+        <h3>📊 View Reports</h3>
+        <p>Daily, monthly, defaulter + Excel</p>
+    </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadCharts() {
+    try {
+        const response = await fetch('/admin/dashboard/chart_data');
+        const data = await response.json();
+        
+        if (!data.success) return;
+        
+        // 1. Trend Line Chart
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: data.trend.labels,
+                datasets: [{
+                    label: 'Attendance',
+                    data: data.trend.values,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+        
+        // 2. Subject Doughnut Chart
+        new Chart(document.getElementById('subjectChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.subjects.labels,
+                datasets: [{
+                    data: data.subjects.values,
+                    backgroundColor: [
+                        '#6366f1', '#10b981', '#f59e0b', '#ef4444',
+                        '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+                }
+            }
+        });
+        
+        // 3. Top Students Bar Chart
+        new Chart(document.getElementById('topStudentsChart'), {
+            type: 'bar',
+            data: {
+                labels: data.top_students.labels,
+                datasets: [{
+                    label: 'Present Days',
+                    data: data.top_students.values,
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    } catch (err) {
+        console.error('Chart error:', err);
+    }
+}
+
+loadCharts();
+</script>
+{% endblock %}

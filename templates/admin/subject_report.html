@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Subject Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ subject.subject_code }} — {{ subject.subject_name }}</h1>
+    <a href="{{ url_for('reports') }}" class="btn-back">Back to Reports</a>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h3>Attendance Summary</h3>
+            <p style="color: #7f8c8d;">
+                Teacher: {{ subject.teacher_name }} | 
+                Total Classes: <strong>{{ total_classes }}</strong>
+            </p>
+        </div>
+        <a href="{{ url_for('export_subject', subject_id=subject.id) }}" 
+           class="btn btn-success" style="width: auto; padding: 0.5rem 1rem; text-decoration: none;">
+            📥 Export to Excel
+        </a>
+    </div>
+    
+    {% if report_data %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Present</th>
+                <th>Total</th>
+                <th>Percentage</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in report_data %}
+            <tr>
+                <td>{{ r.roll_no }}</td>
+                <td><strong>{{ r.name }}</strong></td>
+                <td>{{ r.present_count }}</td>
+                <td>{{ r.total_classes }}</td>
+                <td>{{ r.percentage }}%</td>
+                <td>
+                    {% if r.status == 'Good' %}
+                    <span class="badge badge-success">Good</span>
+                    {% else %}
+                    <span class="badge badge-danger">Low</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #7f8c8d; margin-top: 1rem;">No data available for this subject.</p>
+    {% endif %}
+</div>
+{% endblock %}

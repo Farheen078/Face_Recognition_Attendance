@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Capture Face{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Capture Face: {{ student.name }}</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-back">Cancel</a>
+</div>
+
+<div class="capture-container">
+    <div class="video-wrapper">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <div class="face-guide"></div>
+    </div>
+    
+    <div class="capture-info">
+        <h3>Student Info</h3>
+        <p><strong>Name:</strong> {{ student.name }}</p>
+        <p><strong>Roll No:</strong> {{ student.roll_no }}</p>
+        <p><strong>Course:</strong> {{ student.course }}</p>
+        <p><strong>Semester:</strong> {{ student.semester }}</p>
+        
+        <hr style="margin: 1.25rem 0; border: none; border-top: 1px solid #e2e8f0;">
+        
+        <div class="progress-wrapper">
+            <div class="progress-bar-bg">
+                <div id="progress-bar" class="progress-bar-fill"></div>
+            </div>
+            <p id="progress-text" style="margin-top: 0.5rem; font-weight: 600; color: #1e293b;">0 / 40 images</p>
+        </div>
+        
+        <p id="status-text" class="status-text">Initializing camera...</p>
+        
+        <button id="start-btn" class="btn btn-primary" onclick="startCapture()" disabled>
+            ▶️ Start Capture
+        </button>
+        <a href="{{ url_for('enroll_voice', student_id=student.id) }}" id="done-btn" 
+           class="btn btn-success" style="display:none;">
+            Next: Enroll Voice →
+        </a>
+    </div>
+</div>
+
+<script>
+    const STUDENT_ID = {{ student.id }};
+</script>
+<script src="{{ url_for('static', filename='js/capture.js') }}"></script>
+{% endblock %}

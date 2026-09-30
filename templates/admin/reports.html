@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Attendance Reports</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-back">Back to Dashboard</a>
+</div>
+
+<div class="reports-grid">
+    
+    <div class="report-card">
+        <h3>📅 Daily Report</h3>
+        <p>View attendance for a specific date and subject.</p>
+        <form method="GET" action="{{ url_for('daily_report') }}">
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" value="{{ today }}" required>
+            </div>
+            <div class="form-group">
+                <label>Subject (optional)</label>
+                <select name="subject_id">
+                    <option value="">-- All Subjects --</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.subject_code }} — {{ s.subject_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">View Daily Report</button>
+        </form>
+    </div>
+    
+    <div class="report-card">
+        <h3>⚠️ Defaulter List</h3>
+        <p>Students below attendance threshold (default 75%).</p>
+        <form method="GET" action="{{ url_for('defaulter_report') }}">
+            <div class="form-group">
+                <label>Threshold (%)</label>
+                <input type="number" name="threshold" value="75" min="1" max="100" required>
+            </div>
+            <button type="submit" class="btn btn-primary">View Defaulter List</button>
+        </form>
+    </div>
+    
+    <div class="report-card">
+        <h3>📚 Subject-wise Report</h3>
+        <p>Attendance percentage for each subject.</p>
+        {% if subjects %}
+        <div class="form-group">
+            <label>Select Subject</label>
+            <select id="subject-select">
+                <option value="">-- Select --</option>
+                {% for s in subjects %}
+                <option value="{{ s.id }}">{{ s.subject_code }} — {{ s.subject_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button onclick="viewSubjectReport()" class="btn btn-primary">View Subject Report</button>
+        {% else %}
+        <p style="color: #e67e22; margin-top: 1rem;">No subjects added yet.</p>
+        {% endif %}
+    </div>
+    
+    <div class="report-card">
+        <h3>👤 Student-wise Report</h3>
+        <p>View detailed attendance for a single student.</p>
+        {% if students %}
+        <div class="form-group">
+            <label>Select Student</label>
+            <select id="student-select">
+                <option value="">-- Select --</option>
+                {% for s in students %}
+                <option value="{{ s.id }}">{{ s.roll_no }} — {{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button onclick="viewStudentReport()" class="btn btn-primary">View Student Report</button>
+        {% else %}
+        <p style="color: #e67e22; margin-top: 1rem;">No students registered yet.</p>
+        {% endif %}
+    </div>
+    
+</div>
+
+<script>
+function viewSubjectReport() {
+    const id = document.getElementById('subject-select').value;
+    if (!id) {
+        alert('Please select a subject first.');
+        return;
+    }
+    window.location.href = '/admin/reports/subject/' + id;
+}
+
+function viewStudentReport() {
+    const id = document.getElementById('student-select').value;
+    if (!id) {
+        alert('Please select a student first.');
+        return;
+    }
+    window.location.href = '/admin/reports/student/' + id;
+}
+</script>
+{% endblock %}

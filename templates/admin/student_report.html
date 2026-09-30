@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Student Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ student.name }} — Report</h1>
+        <p style="color: #64748b; margin-top: 0.25rem;">
+            Roll No: <strong>{{ student.roll_no }}</strong> | 
+            Course: {{ student.course }} | 
+            Semester: {{ student.semester }}
+        </p>
+    </div>
+    <a href="{{ url_for('reports') }}" class="btn-back">Back to Reports</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>{{ overall_percentage }}%</h3>
+        <p>Overall Attendance</p>
+    </div>
+    <div class="stat-card" style="border-left-color: #10b981;">
+        <h3 style="color: #10b981;">{{ total_present }}</h3>
+        <p>Total Present</p>
+    </div>
+    <div class="stat-card" style="border-left-color: #6366f1;">
+        <h3 style="color: #6366f1;">{{ total_classes }}</h3>
+        <p>Total Classes</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3>📚 Subject-wise Breakdown</h3>
+        <a href="{{ url_for('export_student', student_id=student.id) }}" 
+           class="btn btn-success" style="width: auto; padding: 0.5rem 1rem; text-decoration: none;">
+            📥 Export to Excel
+        </a>
+    </div>
+    
+    {% if subject_breakdown %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Subject</th>
+                <th>Present</th>
+                <th>Total</th>
+                <th>Percentage</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in subject_breakdown %}
+            <tr>
+                <td><strong>{{ s.subject_code }}</strong></td>
+                <td>{{ s.subject_name }}</td>
+                <td>{{ s.present }}</td>
+                <td>{{ s.total }}</td>
+                <td>{{ s.percentage }}%</td>
+                <td>
+                    {% if s.status == 'Good' %}
+                    <span class="badge badge-success">Good</span>
+                    {% else %}
+                    <span class="badge badge-danger">Low</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #64748b;">No subjects added yet.</p>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <h3>📅 Recent Attendance Records (Last 20)</h3>
+    
+    {% if recent_records %}
+    <table class="data-table" style="margin-top: 1rem;">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Subject</th>
+                <th>Method</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in recent_records %}
+            <tr>
+                <td>{{ r.date }}</td>
+                <td>{{ r.time }}</td>
+                <td>{{ r.subject_code }} — {{ r.subject_name }}</td>
+                <td>
+                    {% if r.method == 'voice' %}
+                    <span class="badge" style="background: #fef3c7; color: #92400e;">🎤 Voice</span>
+                    {% else %}
+                    <span class="badge badge-success">🟢 Face</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #64748b; margin-top: 1rem;">No attendance records yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

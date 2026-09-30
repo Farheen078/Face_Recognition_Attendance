@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Train Model{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Train Recognition Model</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-back">Back to Dashboard</a>
+</div>
+
+{% if message %}
+<div class="alert {% if message_type == 'success' %}alert-success{% else %}alert-error{% endif %}">
+    {{ message }}
+</div>
+{% endif %}
+
+<div class="train-container">
+    
+    <div class="train-card">
+        <h3>📊 Dataset Statistics</h3>
+        <div class="stats-inline">
+            <div class="stat-item">
+                <span class="stat-value">{{ stats.total_students }}</span>
+                <span class="stat-label">Students</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{{ stats.total_images }}</span>
+                <span class="stat-label">Images</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">
+                    {% if model_exists %}✅{% else %}❌{% endif %}
+                </span>
+                <span class="stat-label">Model Status</span>
+            </div>
+        </div>
+        
+        {% if stats.students %}
+        <h4 style="margin-top: 1.5rem;">Registered Students:</h4>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Images</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in stats.students %}
+                <tr>
+                    <td>Student #{{ s.id }}</td>
+                    <td>{{ s.images }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="margin-top: 1rem; color: #7f8c8d;">
+            No students registered yet. Please <a href="{{ url_for('register_student') }}">register a student</a> first.
+        </p>
+        {% endif %}
+    </div>
+    
+    <div class="train-card">
+        <h3>🧠 Train LBPH Model</h3>
+        <p style="margin: 1rem 0; color: #555;">
+            Click the button below to train the face recognition model. 
+            This will process all captured images and create a trained model file.
+        </p>
+        <p style="color: #e67e22; font-size: 0.9rem;">
+            ⚠️ Training may take 30-60 seconds depending on dataset size.
+        </p>
+        
+        <form method="POST" action="{{ url_for('train_model_route') }}">
+            <button type="submit" class="btn btn-primary" 
+                    {% if stats.total_images == 0 %}disabled{% endif %}>
+                {% if model_exists %}Re-Train Model{% else %}Train Model{% endif %}
+            </button>
+        </form>
+        
+        {% if model_exists %}
+        <p style="margin-top: 1rem; color: #27ae60; font-size: 0.9rem;">
+            ✓ Model trained and ready. You can now take attendance.
+        </p>
+        {% endif %}
+    </div>
+    
+</div>
+{% endblock %}

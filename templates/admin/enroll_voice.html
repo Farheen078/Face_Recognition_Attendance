@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Enroll Voice{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Enroll Voice: {{ student.name }}</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-back">Back</a>
+</div>
+
+<div class="two-column">
+    
+    <div class="card">
+        <h3>Student Info</h3>
+        <p style="margin-bottom: 0.5rem;"><strong>Name:</strong> {{ student.name }}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>Roll No:</strong> {{ student.roll_no }}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>Course:</strong> {{ student.course }}</p>
+        <p style="margin-bottom: 1.5rem;">
+            <strong>Voice Status:</strong>
+            {% if already_enrolled %}
+                <span class="badge badge-success">✅ Enrolled</span>
+            {% else %}
+                <span class="badge badge-danger">❌ Not Enrolled</span>
+            {% endif %}
+        </p>
+        <p style="color: #64748b; font-size: 0.9rem;">
+            {% if already_enrolled %}
+            You can re-enroll to update the voice sample.
+            {% else %}
+            Please record a clear voice sample. Speak the sentence shown below.
+            {% endif %}
+        </p>
+    </div>
+    
+    <div class="card">
+        <h3>Voice Recording</h3>
+        
+        <div class="alert alert-info" style="margin-bottom: 1.5rem;">
+            📢 <strong>Please read aloud:</strong><br>
+            "My name is {{ student.name }} and my roll number is {{ student.roll_no }}."
+        </div>
+        
+        <div style="text-align: center; margin: 2rem 0;">
+            <button id="record-btn" class="btn btn-primary" onclick="startRecording()" style="width: auto; padding: 1.2rem 2.5rem;">
+                🎤 Start Recording (3 sec)
+            </button>
+            <button id="stop-btn" class="btn btn-danger" onclick="stopRecording()" style="display:none;">
+                ⏹️ Stop
+            </button>
+        </div>
+        
+        <div id="timer" style="text-align: center; font-size: 2.5rem; font-weight: 800; color: #6366f1; margin: 1rem 0;">
+            <span id="timer-value">3</span>s
+        </div>
+        
+        <p id="status" style="text-align: center; color: #64748b; min-height: 3rem; font-weight: 500;"></p>
+        
+        <div id="preview-section" style="display:none; margin-top: 1rem;">
+            <audio id="audio-preview" controls style="width: 100%;"></audio>
+            <button id="save-btn" class="btn btn-success" onclick="saveVoice()" style="margin-top: 1rem;">
+                💾 Save Voice Sample
+            </button>
+        </div>
+    </div>
+    
+</div>
+
+<script>
+const STUDENT_ID = {{ student.id }};
+</script>
+<script src="{{ url_for('static', filename='js/enroll_voice.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Manage Timetable{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Manage Timetable</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-back">Back to Dashboard</a>
+</div>
+
+<div class="two-column">
+    
+    <div class="card">
+        <h3>➕ Add Timetable Entry</h3>
+        {% if subjects %}
+        <form method="POST" action="{{ url_for('add_timetable') }}">
+            <div class="form-group">
+                <label>Subject</label>
+                <select name="subject_id" required>
+                    <option value="">-- Select Subject --</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.subject_code }} — {{ s.subject_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Day</label>
+                <select name="day" required>
+                    <option value="Sunday">Sunday</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Start Time</label>
+                <input type="time" name="start_time" required>
+            </div>
+            <div class="form-group">
+                <label>End Time</label>
+                <input type="time" name="end_time" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add to Timetable</button>
+        </form>
+        {% else %}
+        <p style="color: #e67e22; margin-top: 1rem;">
+            ⚠️ No subjects found. Please <a href="{{ url_for('manage_subjects') }}">add subjects first</a>.
+        </p>
+        {% endif %}
+    </div>
+    
+    <div class="card">
+        <h3>📅 Current Timetable ({{ timetable|length }})</h3>
+        {% if timetable %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Subject</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in timetable %}
+                <tr>
+                    <td><strong>{{ t.day }}</strong></td>
+                    <td>{{ t.start_time }} - {{ t.end_time }}</td>
+                    <td>
+                        {{ t.subject_code }}<br>
+                        <small style="color: #7f8c8d;">{{ t.subject_name }}</small>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('delete_timetable', entry_id=t.id) }}" 
+                           class="btn-delete"
+                           onclick="return confirm('Delete this entry?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #7f8c8d; margin-top: 1rem;">No timetable entries yet. Add your first entry.</p>
+        {% endif %}
+    </div>
+    
+</div>
+{% endblock %}
