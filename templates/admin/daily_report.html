@@ -7,17 +7,21 @@
     <a href="{{ url_for('reports') }}" class="btn-back">Back to Reports</a>
 </div>
 
-<div class="stats-grid">
+<div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
     <div class="stat-card">
         <h3>{{ total_students }}</h3>
         <p>Total Students</p>
     </div>
-    <div class="stat-card" style="border-left-color: #27ae60;">
-        <h3 style="color: #27ae60;">{{ present_count }}</h3>
+    <div class="stat-card" style="border-left-color: #10b981;">
+        <h3 style="color: #10b981;">{{ present_count }}</h3>
         <p>Present</p>
     </div>
-    <div class="stat-card" style="border-left-color: #e74c3c;">
-        <h3 style="color: #e74c3c;">{{ absent_count }}</h3>
+    <div class="stat-card" style="border-left-color: #f59e0b;">
+        <h3 style="color: #f59e0b;">{{ late_count }}</h3>
+        <p>Late</p>
+    </div>
+    <div class="stat-card" style="border-left-color: #ef4444;">
+        <h3 style="color: #ef4444;">{{ absent_count }}</h3>
         <p>Absent</p>
     </div>
 </div>
@@ -39,6 +43,7 @@
                 <th>Name</th>
                 <th>Roll No</th>
                 <th>Subject</th>
+                <th>Status</th>
                 <th>Method</th>
             </tr>
         </thead>
@@ -49,13 +54,22 @@
                 <td><strong>{{ r.name }}</strong></td>
                 <td>{{ r.roll_no }}</td>
                 <td>{{ r.subject_code }} — {{ r.subject_name }}</td>
-                <td><span class="badge badge-success">{{ r.method }}</span></td>
+                <td>
+                    {% if r.status == 'present' %}
+                    <span class="badge badge-success">Present</span>
+                    {% elif r.status == 'late' %}
+                    <span class="badge" style="background: #fef3c7; color: #92400e;">Late</span>
+                    {% else %}
+                    <span class="badge badge-danger">Absent</span>
+                    {% endif %}
+                </td>
+                <td>{{ r.method }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <p style="color: #7f8c8d; margin-top: 1rem;">No attendance records for this date.</p>
+    <p style="color: #64748b; margin-top: 1rem;">No attendance records for this date.</p>
     {% endif %}
 </div>
 {% endblock %}

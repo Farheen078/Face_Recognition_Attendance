@@ -5,9 +5,39 @@
 <div class="page-header">
     <div>
         <h1>Welcome back, {{ session.admin_username }} 👋</h1>
-        <p style="color: #64748b; margin-top: 0.25rem;">Here's what's happening with your attendance system</p>
+        <p style="color: #64748b; margin-top: 0.25rem;">
+            {{ day_name }} | Current time: {{ now_time }}
+        </p>
     </div>
 </div>
+
+{% if current_class %}
+<div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border: 2px solid #10b981;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <p style="color: #065f46; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                🟢 Live Class in Session
+            </p>
+            <h2 style="color: #065f46; margin: 0.5rem 0; font-size: 1.8rem;">
+                {{ current_class.subject_code }} — {{ current_class.subject_name }}
+            </h2>
+            <p style="color: #047857;">
+                👨‍🏫 {{ current_class.teacher_name }} | ⏰ {{ current_class.start_time }} — {{ current_class.end_time }}
+            </p>
+        </div>
+        <a href="{{ url_for('live_monitor', subject_id=current_class.subject_id) }}" 
+           class="btn btn-primary" style="width: auto; padding: 0.75rem 1.75rem; text-decoration: none;">
+            👁️ View Live Attendance
+        </a>
+    </div>
+</div>
+{% else %}
+<div class="card" style="margin-bottom: 2rem; background: #f1f5f9; border: 2px solid #cbd5e1;">
+    <p style="color: #64748b; font-weight: 600; text-align: center; padding: 0.5rem;">
+        🕐 No class in session right now
+    </p>
+</div>
+{% endif %}
 
 <div class="stats-grid">
     <div class="stat-card">
@@ -24,7 +54,31 @@
     </div>
 </div>
 
-<!-- Charts Section -->
+{% if today_schedule %}
+<div class="card" style="margin: 2rem 0;">
+    <h3>📅 Today's Schedule ({{ day_name }})</h3>
+    <div style="margin-top: 1rem;">
+        {% for s in today_schedule %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1rem; 
+                    background: {% if s.status == 'active' %}#d1fae5{% elif s.status == 'done' %}#f1f5f9{% else %}#fef9c3{% endif %}; 
+                    border-radius: 10px; margin-bottom: 0.5rem;
+                    border-left: 4px solid {% if s.status == 'active' %}#10b981{% elif s.status == 'done' %}#94a3b8{% else %}#f59e0b{% endif %};">
+            <div>
+                <strong style="color: #2c3e50;">{{ s.subject_code }}</strong> — {{ s.subject_name }}
+                <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.15rem;">
+                    ⏰ {{ s.start_time }} - {{ s.end_time }} | 👨‍🏫 {{ s.teacher_name }}
+                </div>
+            </div>
+            <span style="padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+                        background: {% if s.status == 'active' %}#10b981{% elif s.status == 'done' %}#94a3b8{% else %}#f59e0b{% endif %}; color: white;">
+                {% if s.status == 'active' %}LIVE{% elif s.status == 'done' %}DONE{% else %}UPCOMING{% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <div class="charts-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin: 2rem 0;">
     <div class="card">
         <h3 style="margin-bottom: 1rem;">📈 Last 7 Days Attendance</h3>
@@ -50,6 +104,10 @@
         <h3>👤 Register Student</h3>
         <p>Add new student with face capture</p>
     </a>
+    <a href="{{ url_for('manage_students') }}" class="action-card">
+        <h3>👥 Manage Students</h3>
+        <p>View and delete registered students</p>
+    </a>
     <a href="{{ url_for('train_model_route') }}" class="action-card">
         <h3>🧠 Train Model</h3>
         <p>Train face recognition model (LBPH)</p>
@@ -60,11 +118,7 @@
     </a>
     <a href="{{ url_for('manage_timetable') }}" class="action-card">
         <h3>📅 Manage Timetable</h3>
-        <p>Set subject schedule with time</p>
-    </a>
-    <a href="{{ url_for('take_attendance') }}" class="action-card">
-        <h3>📸 Take Attendance</h3>
-        <p>Start live face recognition session</p>
+        <p>Set class schedule — auto-sessions run on this</p>
     </a>
     <a href="{{ url_for('reports') }}" class="action-card">
         <h3>📊 View Reports</h3>
@@ -79,10 +133,9 @@ async function loadCharts() {
     try {
         const response = await fetch('/admin/dashboard/chart_data');
         const data = await response.json();
-        
+
         if (!data.success) return;
-        
-        // 1. Trend Line Chart
+
         new Chart(document.getElementById('trendChart'), {
             type: 'line',
             data: {
@@ -92,49 +145,34 @@ async function loadCharts() {
                     data: data.trend.values,
                     borderColor: '#6366f1',
                     backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointRadius: 5,
-                    pointBackgroundColor: '#6366f1',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2
+                    fill: true, tension: 0.4, borderWidth: 3,
+                    pointRadius: 5, pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#fff', pointBorderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
                 plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
-                }
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
             }
         });
-        
-        // 2. Subject Doughnut Chart
+
         new Chart(document.getElementById('subjectChart'), {
             type: 'doughnut',
             data: {
                 labels: data.subjects.labels,
                 datasets: [{
                     data: data.subjects.values,
-                    backgroundColor: [
-                        '#6366f1', '#10b981', '#f59e0b', '#ef4444',
-                        '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#fff'
+                    backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'],
+                    borderWidth: 2, borderColor: '#fff'
                 }]
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
-                }
+                plugins: { legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } } }
             }
         });
-        
-        // 3. Top Students Bar Chart
+
         new Chart(document.getElementById('topStudentsChart'), {
             type: 'bar',
             data: {
@@ -143,18 +181,13 @@ async function loadCharts() {
                     label: 'Present Days',
                     data: data.top_students.values,
                     backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                    borderColor: '#10b981',
-                    borderWidth: 2,
-                    borderRadius: 8
+                    borderColor: '#10b981', borderWidth: 2, borderRadius: 8
                 }]
             },
             options: {
-                responsive: true,
-                indexAxis: 'y',
+                responsive: true, indexAxis: 'y',
                 plugins: { legend: { display: false } },
-                scales: {
-                    x: { beginAtZero: true, ticks: { stepSize: 1 } }
-                }
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
             }
         });
     } catch (err) {
@@ -163,5 +196,8 @@ async function loadCharts() {
 }
 
 loadCharts();
+
+// Auto refresh every 60 seconds to update current class
+setInterval(() => window.location.reload(), 60000);
 </script>
 {% endblock %}

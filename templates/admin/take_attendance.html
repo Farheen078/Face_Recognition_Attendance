@@ -1,90 +1,64 @@
 {% extends "base.html" %}
-{% block title %}Take Attendance{% endblock %}
+{% block title %}Start Attendance Session{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h1>Take Attendance</h1>
+    <h1>Start Attendance Session</h1>
     <a href="{{ url_for('admin_dashboard') }}" class="btn-back">Back to Dashboard</a>
 </div>
 
 {% if not model_trained %}
 <div class="alert alert-error">{{ message }}</div>
 <p style="margin-top: 1rem;">
-    <a href="{{ url_for('train_model_route') }}" class="btn btn-primary" style="width: auto; display: inline-block;">
+    <a href="{{ url_for('train_model_route') }}" class="btn btn-primary" style="width: auto; display: inline-block; text-decoration: none;">
         Go to Train Model
     </a>
 </p>
 {% else %}
 
 <div class="alert alert-info" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;">
-    🛡️ <strong>Liveness + Voice Fallback Enabled:</strong> 
-    Face recognition with blink check (primary). If face fails, students can use voice verification (fallback).
+    💡 <strong>How it works:</strong> Select a subject and click "Start Session". 
+    The session stays active for <strong>30 minutes</strong>. Students then open the 
+    <strong>Student Kiosk</strong> on the classroom kiosk device and mark their attendance 
+    by facing the camera. You just monitor them from the Live Monitor page.
 </div>
 
-<div class="attendance-container">
-    
-    <div class="attendance-video">
-        <div class="video-wrapper">
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas" style="display:none;"></canvas>
-            <div class="face-guide-att"></div>
-        </div>
-        
-        <div class="controls">
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>Select Subject</label>
-                <select id="subject-select">
-                    <option value="">-- Select Subject --</option>
-                    {% for s in subjects %}
-                    <option value="{{ s.id }}">{{ s.subject_code }} — {{ s.subject_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <button id="start-btn" class="btn btn-primary" onclick="startSession()">
-                ▶️ Start Session
-            </button>
-            <button id="stop-btn" class="btn btn-danger" onclick="stopSession()" style="display:none;">
-                ⏹️ Stop Session
-            </button>
-        </div>
-        
-        <p id="status-text" class="status-text">Select a subject and click "Start Session".</p>
-        
-        <!-- Voice Fallback Section -->
-        <div id="voice-fallback" style="display:none; margin-top: 1.25rem; padding: 1.25rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border: 1px solid #fbbf24;">
-            <h4 style="color: #92400e; margin-bottom: 0.5rem; font-size: 1rem; font-weight: 700;">
-                🎤 Face not recognized? Use Voice Fallback
-            </h4>
-            <p style="color: #78350f; font-size: 0.88rem; margin-bottom: 0.75rem;">
-                Student should say clearly: <em>"My name is [name] and my roll number is [roll]"</em>
-            </p>
-            <button id="voice-record-btn" class="btn btn-primary" onclick="startVoiceRecording()" 
-                    style="width: auto; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #f59e0b, #d97706);">
-                🎙️ Record Voice (3 sec)
-            </button>
-            <button id="voice-stop-btn" class="btn btn-danger" onclick="stopVoiceRecording()" style="display:none;">
-                ⏹️ Stop
-            </button>
-            <p id="voice-status" style="margin-top: 0.75rem; color: #78350f; font-size: 0.9rem; font-weight: 500;"></p>
-        </div>
-    </div>
-    
-    <div class="attendance-list">
-        <h3>✅ Marked Today (<span id="count">0</span>)</h3>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.75rem;">
-            🟢 Face verified &nbsp;|&nbsp; 🎤 Voice verified
+{% if not subjects %}
+<div class="card" style="text-align: center; padding: 3rem;">
+    <h3 style="color: #e67e22; margin-bottom: 1rem;">⚠️ No subjects found</h3>
+    <p style="color: #64748b; margin-bottom: 1.5rem;">
+        You need to add subjects first before starting a session.
+    </p>
+    <a href="{{ url_for('manage_subjects') }}" 
+       class="btn btn-primary" style="width: auto; padding: 0.75rem 2rem; text-decoration: none;">
+        📚 Manage Subjects
+    </a>
+</div>
+{% else %}
+
+<h2 style="margin-bottom: 1.5rem; color: #2c3e50;">Select a Subject</h2>
+
+<div class="reports-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+    {% for s in subjects %}
+    <div class="report-card">
+        <h3 style="color: #6366f1; font-size: 1.5rem; margin-bottom: 0.5rem;">
+            {{ s.subject_code }}
+        </h3>
+        <p style="font-size: 1rem; color: #2c3e50; margin-bottom: 0.75rem; font-weight: 600;">
+            {{ s.subject_name }}
         </p>
-        <div id="attendance-list-items">
-            <p style="color: #64748b;">No attendance marked yet.</p>
-        </div>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem;">
+            👨‍🏫 {{ s.teacher_name }}<br>
+            📚 Semester {{ s.semester }}
+        </p>
+        <a href="{{ url_for('start_session', subject_id=s.id) }}" 
+           class="btn btn-primary" style="text-decoration: none; display: block;">
+            ▶️ Start Session
+        </a>
     </div>
-    
+    {% endfor %}
 </div>
 
 {% endif %}
-{% endblock %}
-
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+{% endif %}
 {% endblock %}

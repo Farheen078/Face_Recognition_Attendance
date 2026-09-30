@@ -13,7 +13,7 @@
         <div class="nav-links">
             {% if session.admin_id and request.endpoint != 'login' and request.endpoint != 'index' %}
                 <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
-                <a href="{{ url_for('take_attendance') }}">Take Attendance</a>
+                <a href="{{ url_for('manage_students') }}">Students</a>
                 <a href="{{ url_for('reports') }}">Reports</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
             {% endif %}
@@ -27,7 +27,7 @@
     <footer class="footer">
         <p>© 2026 Smart Attendance System | BCA 6th Semester Project</p>
     </footer>
-    
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

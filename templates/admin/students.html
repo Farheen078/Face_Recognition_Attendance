@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Manage Students{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>👥 Manage Students</h1>
+        <p style="color: #64748b; margin-top: 0.25rem;">
+            Total: <strong>{{ students|length }}</strong> students registered
+        </p>
+    </div>
+    <a href="{{ url_for('register_student') }}" class="btn btn-primary" 
+       style="width: auto; padding: 0.6rem 1.25rem; text-decoration: none;">
+        ➕ Register New Student
+    </a>
+</div>
+
+{% if students %}
+<div class="card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Course</th>
+                <th>Semester</th>
+                <th>Attendance</th>
+                <th>Face</th>
+                <th>Voice</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in students %}
+            <tr>
+                <td>#{{ s.id }}</td>
+                <td><strong>{{ s.roll_no }}</strong></td>
+                <td>{{ s.name }}</td>
+                <td>{{ s.course }}</td>
+                <td>{{ s.semester }}</td>
+                <td>
+                    <span class="badge badge-success">
+                        {{ s.present_count }} classes
+                    </span>
+                </td>
+                <td>
+                    {% if s.face_trained %}
+                    <span class="badge badge-success">✅</span>
+                    {% else %}
+                    <span class="badge badge-danger">❌</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if s.voice_enrolled %}
+                    <span class="badge badge-success">✅</span>
+                    {% else %}
+                    <span class="badge badge-danger">❌</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('student_report', student_id=s.id) }}" 
+                       class="btn-delete" style="background: #dbeafe; color: #1e40af; margin-right: 0.35rem;">
+                        📊 View
+                    </a>
+                    <a href="{{ url_for('delete_student', student_id=s.id) }}" 
+                       class="btn-delete"
+                       onclick="return confirm('Are you sure you want to delete {{ s.name }}?\n\nThis will also remove their face images and voice data.')">
+                        🗑️ Delete
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <h2 style="font-size: 4rem; margin-bottom: 1rem;">👤</h2>
+    <h3 style="color: #2c3e50; margin-bottom: 0.75rem;">No students registered yet</h3>
+    <p style="color: #64748b; margin-bottom: 2rem;">
+        Start by registering your first student.
+    </p>
+    <a href="{{ url_for('register_student') }}" 
+       class="btn btn-primary" style="width: auto; padding: 0.75rem 2rem; text-decoration: none;">
+        ➕ Register First Student
+    </a>
+</div>
+{% endif %}
+{% endblock %}

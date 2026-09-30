@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Live Monitor{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>📡 Live Monitor — {{ subject.subject_code }}</h1>
+        <p style="color: #64748b; margin-top: 0.25rem;">
+            {{ subject.subject_name }} | {{ subject.teacher_name }}
+        </p>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-back">Back to Dashboard</a>
+</div>
+
+<div class="alert alert-info" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <strong>📱 Student Kiosk URL:</strong><br>
+            <code style="background: white; padding: 0.35rem 0.75rem; border-radius: 6px; display: inline-block; margin-top: 0.5rem;">
+                {{ request.host_url }}student
+            </code>
+        </div>
+        <button onclick="copyKioskUrl()" class="btn btn-primary" 
+                style="width: auto; padding: 0.6rem 1.25rem; font-size: 0.9rem;">
+            📋 Copy URL
+        </button>
+    </div>
+    <p style="margin-top: 0.75rem; font-size: 0.9rem;">
+        👉 Students use this URL to mark attendance. Live list auto-updates every 2 seconds.
+    </p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 380px; gap: 2rem;">
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">📊 Live Attendance</h3>
+            <span id="session-status" style="padding: 0.4rem 1.1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">
+                Loading...
+            </span>
+        </div>
+        
+        <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; margin: 1rem 0;">
+            <div style="font-size: 4rem; font-weight: 800; color: #6366f1; line-height: 1;">
+                <span id="count">0</span>
+            </div>
+            <p style="color: #64748b; margin-top: 0.5rem; font-weight: 600;">Students Marked</p>
+        </div>
+        
+        <div id="attendance-list">
+            <p style="color: #64748b; text-align: center; padding: 2rem;">⏳ Waiting for students...</p>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>ℹ️ Session Info</h3>
+        <div style="background: #f0f9ff; padding: 1rem; border-radius: 10px; margin: 1rem 0;">
+            <p style="color: #1e40af; font-weight: 700; margin-bottom: 0.25rem;">⏰ Class Timing</p>
+            <p style="color: #1e40af; font-size: 1rem; font-weight: 600;">
+                {{ subject.subject_code }}
+            </p>
+            <p style="color: #3b82f6; font-size: 0.9rem; margin-top: 0.25rem;">
+                Session runs per timetable
+            </p>
+        </div>
+        
+        <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e2e8f0;">
+        
+        <h4 style="color: #2c3e50; font-size: 0.95rem; margin-bottom: 0.5rem;">💡 Status Guide</h4>
+        <ul style="color: #64748b; font-size: 0.85rem; padding-left: 1.25rem; line-height: 1.9;">
+            <li>🟢 <strong>Present</strong> — within grace period</li>
+            <li>⏰ <strong>Late</strong> — after grace period</li>
+            <li>❌ <strong>Absent</strong> — auto-marked after class</li>
+            <li>🎤 Green = Face | Yellow = Voice</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+const SUBJECT_ID = {{ subject.id }};
+
+async function loadAttendance() {
+    try {
+        const res = await fetch(`/admin/attendance/today/${SUBJECT_ID}`);
+        const data = await res.json();
+        
+        if (!data.success) return;
+        
+        document.getElementById('count').textContent = data.attendance.length;
+        
+        if (data.attendance.length === 0) {
+            document.getElementById('attendance-list').innerHTML = 
+                '<p style="color: #64748b; text-align: center; padding: 2rem;">⏳ Waiting for students...</p>';
+            return;
+        }
+        
+        let html = '<table class="data-table"><thead><tr><th>Time</th><th>Name</th><th>Roll</th><th>Status</th><th>Method</th></tr></thead><tbody>';
+        for (const a of data.attendance) {
+            const methodIcon = a.method === 'voice' ? '🎤' : '🟢';
+            let statusBadge = '';
+            if (a.status === 'present') {
+                statusBadge = '<span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.6rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700;">PRESENT</span>';
+            } else if (a.status === 'late') {
+                statusBadge = '<span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.6rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700;">LATE</span>';
+            } else {
+                statusBadge = '<span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.6rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700;">ABSENT</span>';
+            }
+            html += `<tr>
+                <td style="font-weight: 600; color: #6366f1;">${a.time}</td>
+                <td><strong>${a.name}</strong></td>
+                <td>${a.roll_no}</td>
+                <td>${statusBadge}</td>
+                <td>${methodIcon} ${a.method}</td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('attendance-list').innerHTML = html;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function checkClass() {
+    try {
+        const res = await fetch('/admin/current_class');
+        const data = await res.json();
+        
+        const statusEl = document.getElementById('session-status');
+        
+        if (data.active && data.subject_id === SUBJECT_ID) {
+            statusEl.textContent = '🟢 LIVE';
+            statusEl.style.background = '#d1fae5';
+            statusEl.style.color = '#065f46';
+        } else if (data.active) {
+            statusEl.textContent = '🔵 DIFFERENT CLASS';
+            statusEl.style.background = '#dbeafe';
+            statusEl.style.color = '#1e40af';
+        } else {
+            statusEl.textContent = '⚫ CLASS ENDED';
+            statusEl.style.background = '#f1f5f9';
+            statusEl.style.color = '#64748b';
+        }
+    } catch (err) {}
+}
+
+function copyKioskUrl() {
+    const url = '{{ request.host_url }}student';
+    navigator.clipboard.writeText(url).then(() => {
+        alert('Kiosk URL copied:\n' + url);
+    });
+}
+
+loadAttendance();
+checkClass();
+setInterval(loadAttendance, 2000);
+setInterval(checkClass, 10000);
+</script>
+{% endblock %}
